@@ -1,0 +1,2 @@
+Report for Assignment1 start evaluation at 2022-06-16 10:47:18.825188 with options ['-n', '4', '/homes/martijntest/courses/BDC/2022/grading.fastq']
+*** ASSIGNMENT assignment1.py STATUS: PASSED at 2022-06-16 10:47:40.784569 ***

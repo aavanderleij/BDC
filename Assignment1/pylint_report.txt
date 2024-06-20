@@ -1,0 +1,33 @@
+ ************* Module assignment1
+ assignment1.py:2: convention (C0301, line-too-long, ) Line too long (120/100)
+ assignment1.py:3: convention (C0301, line-too-long, ) Line too long (112/100)
+ assignment1.py:4: convention (C0301, line-too-long, ) Line too long (117/100)
+ assignment1.py:5: convention (C0301, line-too-long, ) Line too long (116/100)
+ assignment1.py:6: convention (C0301, line-too-long, ) Line too long (116/100)
+ assignment1.py:8: convention (C0301, line-too-long, ) Line too long (139/100)
+ assignment1.py:29: convention (C0301, line-too-long, ) Line too long (105/100)
+ assignment1.py:31: convention (C0301, line-too-long, ) Line too long (111/100)
+ assignment1.py:19: convention (C0414, useless-import-alias, ) Import alias does not rename original package
+ assignment1.py:22: convention (C0116, missing-function-docstring, argparser) Missing function or method docstring
+ assignment1.py:25: warning (W0621, redefined-outer-name, argparser) Redefining name 'argparser' from outer scope (line 22)
+ assignment1.py:23: warning (W0404, reimported, argparser) Reimport 'argparse' (imported line 12)
+ assignment1.py:23: convention (C0415, import-outside-toplevel, argparser) Import outside toplevel (argparse)
+ assignment1.py:45: refactor (R1734, use-list-literal, ) Consider using [] instead of list()
+ assignment1.py:48: convention (C0116, missing-function-docstring, get_size_chunks) Missing function or method docstring
+ assignment1.py:57: convention (C0116, missing-function-docstring, get_part_file) Missing function or method docstring
+ assignment1.py:58: warning (W1514, unspecified-encoding, get_part_file) Using open without explicitly specifying an encoding
+ assignment1.py:65: convention (C0116, missing-function-docstring, get_quality_score_lines) Missing function or method docstring
+ assignment1.py:78: warning (W0631, undefined-loop-variable, get_quality_score_lines) Using possibly undefined loop variable 'count'
+ assignment1.py:88: refactor (R1734, use-list-literal, decode_fastq_quality_score) Consider using [] instead of list()
+ assignment1.py:97: warning (W0621, redefined-outer-name, procces_wrapper) Redefining name 'encoded_quality_score_list' from outer scope (line 45)
+ assignment1.py:101: refactor (R1732, consider-using-with, procces_wrapper) Consider using 'with' for resource-allocating operations
+ assignment1.py:111: convention (C0116, missing-function-docstring, get_mean_score) Missing function or method docstring
+ assignment1.py:118: convention (C0116, missing-function-docstring, write_outfile) Missing function or method docstring
+ assignment1.py:126: convention (C0121, singleton-comparison, write_outfile) Comparison 'args.csvfile == None' should be 'args.csvfile is None'
+ assignment1.py:144: convention (C0116, missing-function-docstring, main) Missing function or method docstring
+ assignment1.py:12: warning (W0611, unused-import, ) Unused import argparse
+ 
+ ------------------------------------------------------------------
+ Your code has been rated at 6.58/10 (previous run: 6.94/10, -0.36)
+ 
+ 
