@@ -203,11 +203,14 @@ def runserver(func, data, outfile, fastqfiles):
         file_idx = job["file_idx"]
         all_decoded_scores[file_idx].extend(decoded_score)
 
+    # check if one fastqfile and set flag
+    multi_file_flag = len(fastqfiles) != 1
+
     # Calculate mean scores and write out results for each fastqfile
     for file_idx, decoded_scores in enumerate(all_decoded_scores):
         mean_score_list = get_mean_score(decoded_scores)
         fastqfile_name = fastqfiles[file_idx].name
-        write_outfile(outfile, mean_score_list, fastqfile_name)
+        write_outfile(outfile, mean_score_list, fastqfile_name, multi_file_flag)
 
 
 def make_client_manager(ip_address, port, authkey):
@@ -410,7 +413,7 @@ def get_mean_score(decoded_list):
     return mean_score_list
 
 
-def write_outfile(csvfile, mean_score_list, fastqfile_name):
+def write_outfile(csvfile, mean_score_list, fastqfile_name, multi_file):
     """
     Write the output to a csv file or print to terminal if no file is given.
     
@@ -434,7 +437,9 @@ def write_outfile(csvfile, mean_score_list, fastqfile_name):
         # write into csv file
         with open(csvfile.name, 'a', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
-            writer.writerow([fastqfile_name])  # Add fastqfile name to the CSV
+            # Add fastqfile name to the CSV if more then one file
+            if multi_file:
+                writer.writerow([fastqfile_name])  # Add fastqfile name to the CSV
             writer.writerows(final_list)
     return 0
 
@@ -456,12 +461,13 @@ def main():
     """
     The main function, called if script is called by name
     """
+
     args = argparser()
     if args.s:
         print("start server mode")
         data = []
         outfile = args.csvfile
-        fastqfiles = args.fastq_files  # Assuming this is a list of fastq files
+        fastqfiles = args.fastq_files
 
         for fastqfile in fastqfiles:
             # Process each file and append the results to data
