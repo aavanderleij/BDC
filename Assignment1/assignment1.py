@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Je moet in je repository deze opdracht in een aparte map genaamd "Assignment1" (let op de
 hoofdletters, case-sensitive!)aanleveren. Het script zelf moet "assignment1.py" heten (alweer,
@@ -163,8 +165,11 @@ def get_mean_score(decoded_list):
     This function takes a list of lists, where each inner list contains quality scores for a
     sequence, and calculates the mean score at each position across all sequences. If sequences
     are of different lengths, positions without scores are treated as containing `None` and are
-    ignored in the mean calculation. Args: decoded_list: (list of list with int): A list where
-    each element is a list of quality scores for a sequence.
+    ignored in the mean calculation.
+
+    Args:
+        decoded_list: (list of list with int): A list where
+        each element is a list of quality scores for a sequence.
 
     Returns:
         list of int: A list of mean quality scores for each position across all sequences.
@@ -198,7 +203,6 @@ def write_outfile(args, sum_list, fastqfile):
 
     if args.csvfile is None:
         # stdout
-        print(final_list)
 
         for row in final_list:
             sys.stdout.write(str(row) + "\n")
@@ -208,7 +212,9 @@ def write_outfile(args, sum_list, fastqfile):
         # write into csv file
 
         writer = csv.writer(args.csvfile)
-        writer.writerow([fastqfile.name])
+        # if only 1 file is given, don't writhe name in outfile
+        if len(args.fastq_files) != 1:
+            writer.writerow([fastqfile.name])
         writer.writerows(final_list)
 
     return 0
