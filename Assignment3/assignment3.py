@@ -2,21 +2,41 @@
 
 """
 Script for assignment 3 of big data computing
+
+Script decoding for the pred score form fastq files and calculating the mean.
+This script was made to work with assignment3.sh
+
+this scrit has two modes
+Decode Quality Scores:
+   Use the `-d` or `--decode` option to decode quality scores from Fastq files.
+   It reads Fastq data from stdin, extracts the fourth line (quality scores),
+   decodes these scores, and prints them.
+
+   Example usage:
+    python3 assignment3.py -d < fastq_file.fastq
+
+Compute Mean Scores:
+   Use the `-m` or `--mean` option to compute mean scores across all decoded quality scores.
+   It reads decoded quality scores from stdin, calculates the mean, and prints the result.
+
+   Example usage:
+    python3 assignment3.py -m < decoded_scores.txt
 """
-import argparse as ap
-import csv
+
 import sys
 from itertools import zip_longest
-import numpy
 import argparse as ap
-import ast
+import numpy
 
 
 def argparser():
+    """
+    Argparse function for handling commandline arguments.
+    """
     parser = ap.ArgumentParser(description="Process quality scores and compute mean scores.")
 
     parser.add_argument("-d", "--decode", action="store_true",
-                      help="Decode quality scores and print them.")
+                      help="Decode quality scores.")
     parser.add_argument("-m", "--mean", action="store_true",
                       help="Compute mean scores across all quality scores.")
 
@@ -49,59 +69,50 @@ def get_mean_score(decoded_list):
         mean_score_list: list with mean pred scores
 
     """
-    print("get mean...")
     mean_score_list = [numpy.mean(x) for x in zip_longest(*decoded_list, fillvalue=0)]
     return mean_score_list
 
-
-def write_outfile(csvfile, mean_score_list):
+def line_to_list(line):
     """
-    Write the output to a csv file or print to terminal if no file is given.
-
-    Args:
-        csvfile: the file name of output file
-        mean_score_list: list of mean pred scores
-
-    Returns:
-
+    takes line fom the commandline and make them into a python list
     """
-    print("write outfile...")
-    base_num = list(range(1, len(mean_score_list) + 1))
-    # add base number by value
-    final_list = list(zip(base_num, mean_score_list))
+    line = line.strip()
+    line = line.strip("[]")
+    decoded_list = list(map(int, line.split(',')))
 
-    # write into csv file
-    with open(csvfile, 'a', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerows(final_list)
-    return 0
-
+    return decoded_list
 
 def main():
+    """
+    Read arguments from the commandline and start the right process
+    """
     # Get args
     args = argparser()
+
+    # check if in decode mode
     if args.decode:
         # read input directly form stdin
         for line in sys.stdin:
-
             # Decode quality scores
             decoded_scores = decode_fastq_quality_score(line)
+            # print scores (for use in bash script)
             print(decoded_scores)
 
+    # check if in mean mode
     elif args.mean:
-        # Read decoded quality scores from stdin
+        # create list for collecting decoded score lists
         decoded_lists = []
-
+        # Read decoded quality scores from stdin
         for line in sys.stdin:
-            line = line.strip()
-            line = line.strip("[]")
-            decoded_list = list(map(int, line.split(',')))
+            # make line into list
+            decoded_list = line_to_list(line)
             decoded_lists.append(decoded_list)
 
         # Compute mean scores
         mean_scores = get_mean_score(decoded_lists)
-        print(mean_scores)
-        write_outfile("output.csv", mean_scores)
+        for i, score in enumerate(mean_scores):
+            # print scores (for use in bash script)
+            print(i, score)
 
 
 if __name__ == "__main__":
