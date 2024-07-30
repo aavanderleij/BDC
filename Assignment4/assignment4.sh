@@ -1,0 +1,1 @@
+mpiexec -n 4 python assignment4.py "/homes/aavanderleij/BDC_2024/testFiles/subset.fastq" -n 4 -o "test.csv"
