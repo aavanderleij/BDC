@@ -1,20 +1,29 @@
-import sys
+"""
+Deze opdracht gaat, over het verwerken van Fastq files om hun gemiddelde PHRED score te bepalen.
+Wat deze keer veranderd is het gebruik van MPI. Met de mpi4py module kun je het zelf opzetten van
+de afzonderlijke processen vermijden.Daarnaast kun je gebruik maken van de MPI communicatiekanalen
+om het werk te verdelen; deze hoef je niet expliciet op te zetten, ze zijn er gewoon. Je moet
+dus je code refactoren om van mpi4py gebruik te maken, en miet meer van multiprocessing.
+Verder gebruik je SLURM om de aanvankelijke processen op te starten; dit hoeft (mag!) dus niet
+meer met de hand uit een terminal.
 
-from mpi4py import MPI
-import numpy
+Student: Antsje van der Leij
+student number: 343279
+"""
+
 import csv
 import itertools
 import sys
 from itertools import zip_longest
 from itertools import chain
 import argparse as ap
-
+from mpi4py import MPI
+import numpy
 
 def argparser():
     """
         Parses command line arguments for the script.
 
-        - `-n` (required): Specifies the number of cores to use.
         - `-o` (optional): Specifies the output CSV file to store the results. If not
           provided, the output will be directed to the terminal (STDOUT).
         - `fastq_files` (required): One or more Fastq Format files to be processed.
@@ -22,18 +31,10 @@ def argparser():
         Returns:
             args: The parsed arguments as an object
 
-        Example server mode:
-            python3 assignment2.py -s rnaseqfile.fastq --host <een workstation>
-            --port <een poort> --chunks
+        Example:
 
-        Example client mode:
-             python3 assignment2.py -c --host <diezelfde host als voor server> --port
-            <diezelfde poort als voor server>
     """
     arg_parser = ap.ArgumentParser(description="Script voor Opdracht 4 van Big Data Computing")
-    arg_parser.add_argument("-n", action="store",
-                            dest="n", required=True, type=int,
-                            help="Aantal workers om te gebruiken.")
     arg_parser.add_argument("-o", action="store", dest="csvfile",
                             type=ap.FileType('w', encoding='UTF-8'),
                             required=False,
@@ -196,13 +197,14 @@ def main():
     comm = MPI.COMM_WORLD
     comm_size = comm.Get_size()
     my_rank = comm.Get_rank()
+    print(f"Hello! this is rank {my_rank} on {MPI.Get_processor_name()}.")
     outfile = args.csvfile
     fastqfiles = args.fastq_files
     for file_idx, fastqfile in enumerate(fastqfiles):
 
         if my_rank == 0:  # we zijn een controller
             # Process each file and append the quality lines to a list
-            quality_score_lines_list, file_length = get_quality_score_lines(fastqfile)
+            quality_score_lines_list, _ = get_quality_score_lines(fastqfile)
             # divide the data into chunks for every worker
             job_data = divide_chunks(quality_score_lines_list, comm_size)
             # scater job data over every worker
