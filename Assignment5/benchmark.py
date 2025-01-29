@@ -102,6 +102,136 @@ def join_tags(watlas_df, tags_df=read_tag_file()):
     return watlas_df
 
 
+def get_simple_travel_distance(watlas_df):
+    """
+    Gets the Euclidean distance in meters between consecutive localization in a coordinate.
+    Add claculated distance to each as column "distance"
+    """
+
+    watlas_df = watlas_df.with_columns(
+        (
+            ((pl.col("X") - pl.col("X").shift(1)) ** 2
+             + (pl.col("Y") - pl.col("Y").shift(1)) ** 2).sqrt()
+        ).alias("distance")
+    )
+
+    return watlas_df
+
+
+def get_speed(watlas_df):
+    """
+    Calculate speed in meters per second for a watlas dataframe.
+    Add claculated speed as column "speed"
+    """
+    # check if distance is already calculated
+    if "distance" not in watlas_df.columns:
+        watlas_df = get_simple_travel_distance(watlas_df)
+
+    # get distance
+    distance = watlas_df["distance"]
+    # get the time interval in seconds between rows in the "TIME" column
+    time = (watlas_df["TIME"] - watlas_df["TIME"].shift(1)) / 1000
+    # calculate speed
+    speed = distance / time
+
+    # add speed_in and speed_out to dataframe
+    watlas_df = watlas_df.with_columns([
+        speed.alias("speed_in"),
+        speed.shift(-1).alias("speed_out")])
+
+    return watlas_df
+
+
+def aggregate_dataframe(watlas_df, interval="15s"):
+    """
+        Aggregate a polars dataframe containing WATLAS data to the time specified interval.
+        This thins the data to only have rows with given intervals.
+
+        Args:
+            watlas_df:
+            interval (str): the time interval to aggregate (default 15 seconds)
+
+    """
+    watlas_df = watlas_df.with_columns(
+        # convert unix time from TIME column to human-readable time
+        pl.from_epoch(pl.col("TIME"), time_unit="ms").alias("time")
+    )
+
+    watlas_df = watlas_df.group_by_dynamic("time", every=interval, group_by="TAG").agg(
+        [
+            # aggregate columns X, Y and NBS by getting the mean of those values per interval
+            # drop COVXY, covariance loses meaning if an average is taken.
+            pl.col("*").exclude("VARX", "VARY", "COVXY", "TIME", "tag").exclude(pl.Utf8).mean(),
+
+            # keep first value of string columns
+            pl.col(pl.Utf8).first(),
+            # keep first value of TIME
+            pl.col("TIME").first(),
+            # keep "tag" as int
+            pl.col("tag").first(),
+
+            # the variance of an average is the sum of variances / sample size square
+            (pl.col("VARX").sum() / (pl.col("VARX").count() ** 2)).alias("VARX"),
+            (pl.col("VARY").sum() / (pl.col("VARY").count() ** 2)).alias("VARY"),
+        ]
+    )
+    return watlas_df
+
+
+def smooth_data(watlas_df, moving_window=5):
+    """
+    Applies a median smooth defined by a rolling window to the X and Y
+
+    Args:
+        watlas_df (pl.Datafame):
+        moving_window (int): the window size:
+    """
+    watlas_df = watlas_df.with_columns(
+        pl.col("X").alias("X_raw"),  # Keep original values
+        pl.col("Y").alias("Y_raw"),  # Keep original values
+        # Apply the forward and reverse rolling median on X
+        pl.col("X")
+        .reverse()
+        .rolling_median(window_size=moving_window, min_periods=1)
+        .reverse()
+        .rolling_median(window_size=moving_window, min_periods=1)
+        .alias("X"),
+        # Apply the forward and reverse rolling median on Y
+        pl.col("Y")
+        .reverse()
+        .rolling_median(window_size=moving_window, min_periods=1)
+        .reverse()
+        .rolling_median(window_size=moving_window, min_periods=1)
+    )
+    return watlas_df
+
+
+def process_per_tag(self):
+    """
+    Group by tag and apply median smooth, caluclate distace, speed and turn angle
+    Returns:
+
+    """
+
+    # empty dataframe list
+    df_list = []
+
+    # smooth and calculate per tag (these calculations have to be done per individual bird)
+    for _, wat_df in self.watlas_df.group_by("tag"):
+        # order by time
+        wat_df = wat_df.sort(by="TIME")
+        # apply median smooth
+        wat_df = smooth_data(wat_df)
+        # calculate distance and speed per tag
+        wat_df = get_speed(wat_df)
+        # calculate turn angle per tag
+
+        df_list.append(wat_df)
+
+    # concat dataframes to single dataframe
+    self.watlas_df = pl.concat(df_list)
+
+
 def main():
     # get data + query warmup
     watlas_df = get_sql_data()
@@ -114,11 +244,19 @@ def main():
     print(f"shape of polars df: {watlas_df.shape}")
     print(f'size of df: {watlas_df.estimated_size("mb")} mb')
 
-    # benchmark reading SQLite
+    # benchmark join left
     time_join = timeit(lambda: join_tags(watlas_df=watlas_df), number=1)
     print(f"Time getting data from joining tags: {time_join}")
 
     watlas_df = join_tags(watlas_df)
+
+    # benchmark calculating simple distance
+    time_dist = timeit(lambda: get_simple_travel_distance(watlas_df=watlas_df), number=1)
+    print(f"Time getting data from calculating simple distance: {time_dist}")
+
+    # benchmark join left
+    time_dist = timeit(lambda: get_speed(watlas_df=watlas_df), number=1)
+    print(f"Time getting data from calculating simple distance: {time_dist}")
 
     return 0
 
