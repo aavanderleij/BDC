@@ -17,6 +17,13 @@ from timeit import timeit
 sqlite_file = "data/watlas-2023.sqlite"
 tag_file = 'data/tags_watlas_all.xlsx'
 
+sqlite_file_path = Path(sqlite_file).absolute()
+file_size = sqlite_file_path.stat().st_size
+
+file_size_kb = file_size / 1024
+file_size_mb = file_size_kb / 1024
+print(f"File size: {file_size_kb:.2f} KB")
+print(f"File size: {file_size_mb:.2f} MB")
 
 def get_subset_query():
     """
@@ -53,14 +60,14 @@ def get_sql_data(sqlite_file_path=sqlite_file):
     #
     # print(f"polars thread pool size {pl.thread_pool_size()}")
 
-    query = get_subset_query()
+    # query = get_subset_query()
 
     # query with all data form sqlite
-    # query = f"""
-    #         SELECT TAG, TIME, X, Y, NBS, VARX, VARY, COVXY
-    #         FROM LOCALIZATIONS
-    #         ORDER BY TIME ASC;
-    #         """
+    query = f"""
+            SELECT TAG, TIME, X, Y, NBS, VARX, VARY, COVXY
+            FROM LOCALIZATIONS
+            ORDER BY TIME ASC;
+            """
     # run query
     watlas_df = pl.read_database_uri(query, db_uri)
 
@@ -192,21 +199,21 @@ def smooth_data(watlas_df, moving_window=5):
         # Apply the forward and reverse rolling median on X
         pl.col("X")
         .reverse()
-        .rolling_median(window_size=moving_window, min_periods=1)
+        .rolling_median(window_size=moving_window, min_samples=1)
         .reverse()
-        .rolling_median(window_size=moving_window, min_periods=1)
+        .rolling_median(window_size=moving_window, min_samples=1)
         .alias("X"),
         # Apply the forward and reverse rolling median on Y
         pl.col("Y")
         .reverse()
-        .rolling_median(window_size=moving_window, min_periods=1)
+        .rolling_median(window_size=moving_window, min_samples=1)
         .reverse()
-        .rolling_median(window_size=moving_window, min_periods=1)
+        .rolling_median(window_size=moving_window, min_samples=1)
     )
     return watlas_df
 
 
-def process_per_tag(self):
+def group_by_tag(watlas_df):
     """
     Group by tag and apply median smooth, caluclate distace, speed and turn angle
     Returns:
@@ -217,7 +224,7 @@ def process_per_tag(self):
     df_list = []
 
     # smooth and calculate per tag (these calculations have to be done per individual bird)
-    for _, wat_df in self.watlas_df.group_by("tag"):
+    for _, wat_df in watlas_df.group_by("tag"):
         # order by time
         wat_df = wat_df.sort(by="TIME")
         # apply median smooth
@@ -229,15 +236,47 @@ def process_per_tag(self):
         df_list.append(wat_df)
 
     # concat dataframes to single dataframe
-    self.watlas_df = pl.concat(df_list)
+    watlas_df = pl.concat(df_list)
+
+    return watlas_df
+
+
+def speed_and_smooth_by_tag(watlas_df):
+    """
+    Group by tag and apply median smooth, caluclate distace, speed and turn angle
+    Returns:
+
+    """
+
+    # empty dataframe list
+    df_list = []
+
+    # smooth and calculate per tag (these calculations have to be done per individual bird)
+    for _, wat_df in watlas_df.group_by("tag"):
+        # order by time
+        wat_df = wat_df.sort(by="TIME")
+        # apply median smooth
+        wat_df = smooth_data(wat_df)
+        # calculate distance and speed per tag
+        wat_df = get_speed(wat_df)
+        # calculate turn angle per tag
+
+        df_list.append(wat_df)
+
+    # concat dataframes to single dataframe
+    watlas_df = pl.concat(df_list)
+
+    return watlas_df
 
 
 def main():
     # get data + query warmup
     watlas_df = get_sql_data()
 
+    repeats = 1
+
     # benchmark reading SQLite
-    time_get_data = timeit(lambda: get_sql_data(), number=1)
+    time_get_data = timeit(lambda: get_sql_data(), number=repeats)
     print(f"Time getting data from file: {time_get_data}")
 
     # print size
@@ -245,18 +284,40 @@ def main():
     print(f'size of df: {watlas_df.estimated_size("mb")} mb')
 
     # benchmark join left
-    time_join = timeit(lambda: join_tags(watlas_df=watlas_df), number=1)
+    time_join = timeit(lambda: join_tags(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from joining tags: {time_join}")
 
     watlas_df = join_tags(watlas_df)
 
     # benchmark calculating simple distance
-    time_dist = timeit(lambda: get_simple_travel_distance(watlas_df=watlas_df), number=1)
+    time_dist = timeit(lambda: get_simple_travel_distance(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from calculating simple distance: {time_dist}")
 
-    # benchmark join left
-    time_dist = timeit(lambda: get_speed(watlas_df=watlas_df), number=1)
-    print(f"Time getting data from calculating simple distance: {time_dist}")
+    # benchmark caluclate speed
+    time_speed = timeit(lambda: get_speed(watlas_df=watlas_df), number=repeats)
+    print(f"Time getting data from calculating speed: {time_speed}")
+
+    # benchmark run median smooth
+    time_smooth = timeit(lambda: smooth_data(watlas_df=watlas_df), number=repeats)
+    print(f"Time getting data from preforming median smooth: {time_smooth}")
+
+    # benchmark aggregate
+    time_aggr = timeit(lambda: aggregate_dataframe(watlas_df=watlas_df), number=repeats)
+    print(f"Time getting data from aggregating dataframe: {time_aggr}")
+
+    # benchmark group by
+    time_group = timeit(lambda: group_by_tag(watlas_df=watlas_df), number=repeats)
+    print(f"Time getting data from calculating within a group_by: {time_group}")
+
+    # benchmark sort
+    shuffled_df = watlas_df.sample(fraction=1, shuffle=True)
+    time_sort = timeit(lambda: shuffled_df.sort(by='TIME'), number=repeats)
+    print(f"Time getting sorting data: {time_sort}")
+
+    # benchmark multiple operations together
+    time_tag = timeit(lambda: speed_and_smooth_by_tag(watlas_df=watlas_df), number=repeats)
+    print(f"Time getting data from calculating within a group_by: {time_tag}")
+
 
     return 0
 
