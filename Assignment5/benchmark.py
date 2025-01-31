@@ -16,13 +16,17 @@ from timeit import timeit
 # constands
 sqlite_file = "data/watlas-2023.sqlite"
 tag_file = 'data/tags_watlas_all.xlsx'
+# output file
+output_file = f"benchmark_results_{pl.thread_pool_size()}.csv"
+# header
+with open(output_file, "w") as f:
+    f.write("test,time,repeat\n")
 
 sqlite_file_path = Path(sqlite_file).absolute()
 file_size = sqlite_file_path.stat().st_size
 
 file_size_kb = file_size / 1024
 file_size_mb = file_size_kb / 1024
-print(f"File size: {file_size_kb:.2f} KB")
 print(f"File size: {file_size_mb:.2f} MB")
 
 def get_subset_query():
@@ -59,8 +63,6 @@ def get_sql_data(sqlite_file_path=sqlite_file):
     # print("set_querry")
     #
     # print(f"polars thread pool size {pl.thread_pool_size()}")
-
-    # query = get_subset_query()
 
     # query with all data form sqlite
     query = f"""
@@ -269,54 +271,68 @@ def speed_and_smooth_by_tag(watlas_df):
     return watlas_df
 
 
+def log_benchmark(test, time, repeats):
+    with open(output_file, "a") as f:
+        f.write(f"{test},{time},{repeats}\n")
+
+
 def main():
     # get data + query warmup
     watlas_df = get_sql_data()
 
-    repeats = 1
+    repeats = 10
 
     # benchmark reading SQLite
     time_get_data = timeit(lambda: get_sql_data(), number=repeats)
     print(f"Time getting data from file: {time_get_data}")
+    log_benchmark("read_sql", time_get_data, repeats)
 
     # print size
     print(f"shape of polars df: {watlas_df.shape}")
     print(f'size of df: {watlas_df.estimated_size("mb")} mb')
 
+
     # benchmark join left
     time_join = timeit(lambda: join_tags(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from joining tags: {time_join}")
+    log_benchmark("join", time_join, repeats)
 
-    watlas_df = join_tags(watlas_df)
 
     # benchmark calculating simple distance
     time_dist = timeit(lambda: get_simple_travel_distance(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from calculating simple distance: {time_dist}")
+    log_benchmark("calculate_dist", time_dist, repeats)
 
     # benchmark caluclate speed
     time_speed = timeit(lambda: get_speed(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from calculating speed: {time_speed}")
+    log_benchmark("calculate_speed", time_speed, repeats)
 
     # benchmark run median smooth
     time_smooth = timeit(lambda: smooth_data(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from preforming median smooth: {time_smooth}")
+    log_benchmark("median_smooth", time_smooth, repeats)
 
     # benchmark aggregate
     time_aggr = timeit(lambda: aggregate_dataframe(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from aggregating dataframe: {time_aggr}")
+    log_benchmark("aggregate", time_aggr, repeats)
 
     # benchmark group by
     time_group = timeit(lambda: group_by_tag(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from calculating within a group_by: {time_group}")
+    log_benchmark("group_by", time_group, repeats)
 
     # benchmark sort
     shuffled_df = watlas_df.sample(fraction=1, shuffle=True)
     time_sort = timeit(lambda: shuffled_df.sort(by='TIME'), number=repeats)
     print(f"Time getting sorting data: {time_sort}")
+    log_benchmark("sort", time_sort, repeats)
 
     # benchmark multiple operations together
     time_tag = timeit(lambda: speed_and_smooth_by_tag(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from calculating within a group_by: {time_tag}")
+    log_benchmark("multi_test", time_tag, repeats)
 
 
     return 0
