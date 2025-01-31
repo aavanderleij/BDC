@@ -1,0 +1,66 @@
+/export/lv9/user/avdleij/BDC/Assignment5/benchmark.py:11: DeprecationWarning: `threadpool_size` is deprecated. It has been renamed to `thread_pool_size`.
+  print(f"Amount of threads used by polars: {pl.threadpool_size()}")
+Could not determine dtype for column 3, falling back to string
+Could not determine dtype for column 8, falling back to string
+Could not determine dtype for column 10, falling back to string
+Could not determine dtype for column 12, falling back to string
+Could not determine dtype for column 13, falling back to string
+Could not determine dtype for column 14, falling back to string
+Could not determine dtype for column 15, falling back to string
+Could not determine dtype for column 23, falling back to string
+Could not determine dtype for column 24, falling back to string
+Could not determine dtype for column 25, falling back to string
+Could not determine dtype for column 26, falling back to string
+/export/lv9/user/avdleij/BDC/Assignment5/benchmark.py:11: DeprecationWarning: `threadpool_size` is deprecated. It has been renamed to `thread_pool_size`.
+  print(f"Amount of threads used by polars: {pl.threadpool_size()}")
+Could not determine dtype for column 3, falling back to string
+Could not determine dtype for column 8, falling back to string
+Could not determine dtype for column 10, falling back to string
+Could not determine dtype for column 12, falling back to string
+Could not determine dtype for column 13, falling back to string
+Could not determine dtype for column 14, falling back to string
+Could not determine dtype for column 15, falling back to string
+Could not determine dtype for column 23, falling back to string
+Could not determine dtype for column 24, falling back to string
+Could not determine dtype for column 25, falling back to string
+Could not determine dtype for column 26, falling back to string
+/export/lv9/user/avdleij/BDC/Assignment5/benchmark.py:11: DeprecationWarning: `threadpool_size` is deprecated. It has been renamed to `thread_pool_size`.
+  print(f"Amount of threads used by polars: {pl.threadpool_size()}")
+Could not determine dtype for column 3, falling back to string
+Could not determine dtype for column 8, falling back to string
+Could not determine dtype for column 10, falling back to string
+Could not determine dtype for column 12, falling back to string
+Could not determine dtype for column 13, falling back to string
+Could not determine dtype for column 14, falling back to string
+Could not determine dtype for column 15, falling back to string
+Could not determine dtype for column 23, falling back to string
+Could not determine dtype for column 24, falling back to string
+Could not determine dtype for column 25, falling back to string
+Could not determine dtype for column 26, falling back to string
+/export/lv9/user/avdleij/BDC/Assignment5/benchmark.py:11: DeprecationWarning: `threadpool_size` is deprecated. It has been renamed to `thread_pool_size`.
+  print(f"Amount of threads used by polars: {pl.threadpool_size()}")
+Could not determine dtype for column 3, falling back to string
+Could not determine dtype for column 8, falling back to string
+Could not determine dtype for column 10, falling back to string
+Could not determine dtype for column 12, falling back to string
+Could not determine dtype for column 13, falling back to string
+Could not determine dtype for column 14, falling back to string
+Could not determine dtype for column 15, falling back to string
+Could not determine dtype for column 23, falling back to string
+Could not determine dtype for column 24, falling back to string
+Could not determine dtype for column 25, falling back to string
+Could not determine dtype for column 26, falling back to string
+/export/lv9/user/avdleij/BDC/Assignment5/benchmark.py:11: DeprecationWarning: `threadpool_size` is deprecated. It has been renamed to `thread_pool_size`.
+  print(f"Amount of threads used by polars: {pl.threadpool_size()}")
+Could not determine dtype for column 3, falling back to string
+Could not determine dtype for column 8, falling back to string
+Could not determine dtype for column 10, falling back to string
+Could not determine dtype for column 12, falling back to string
+Could not determine dtype for column 13, falling back to string
+Could not determine dtype for column 14, falling back to string
+Could not determine dtype for column 15, falling back to string
+Could not determine dtype for column 23, falling back to string
+Could not determine dtype for column 24, falling back to string
+Could not determine dtype for column 25, falling back to string
+Could not determine dtype for column 26, falling back to string
+slurmstepd: error: *** JOB 464195 ON no85 CANCELLED AT 2025-01-31T09:59:33 DUE TO TIME LIMIT ***

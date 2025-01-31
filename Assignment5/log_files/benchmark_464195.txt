@@ -1,0 +1,88 @@
+[0;34mStarting conda on host no85 with base /opt/biolinux/anaconda/60/3-2020.02 
+[0;34mThe base environment has been activated. Run (once) "conda deactivate" command to exit current python environment  [0m
+[0;34mThe current Python version is 3.7.6[0m
+[0;34m [0m
+Using polars version 1.21.0
+Amount of threads used by polars: 1
+File size: 6092.21 MB
+Time getting data from file: 477.538859764114
+shape of polars df: (42318191, 9)
+size of df: 2905.7595748901367 mb
+Time getting data from joining tags: 11.12017972767353
+Time getting data from calculating simple distance: 6.8796960432082415
+Time getting data from calculating speed: 10.922729158774018
+Time getting data from preforming median smooth: 98.13862358033657
+Time getting data from aggregating dataframe: 74.45166590996087
+Time getting data from calculating within a group_by: 155.83420985750854
+Time getting sorting data: 76.66115205921233
+Time getting data from calculating within a group_by: 148.10028505139053
+Using polars version 1.21.0
+Amount of threads used by polars: 4
+File size: 6092.21 MB
+Time getting data from file: 484.2165880165994
+shape of polars df: (42318191, 9)
+size of df: 2905.7595748901367 mb
+Time getting data from joining tags: 7.009932426735759
+Time getting data from calculating simple distance: 7.939528858289123
+Time getting data from calculating speed: 12.333346089348197
+Time getting data from preforming median smooth: 57.50998945906758
+Time getting data from aggregating dataframe: 28.081480441614985
+Time getting data from calculating within a group_by: 88.72389259934425
+Time getting sorting data: 30.466212952509522
+Time getting data from calculating within a group_by: 88.06261499412358
+Using polars version 1.21.0
+Amount of threads used by polars: 8
+File size: 6092.21 MB
+Time getting data from file: 481.4692027438432
+shape of polars df: (42318191, 9)
+size of df: 2905.7595748901367 mb
+Time getting data from joining tags: 5.902099197730422
+Time getting data from calculating simple distance: 7.635175686329603
+Time getting data from calculating speed: 11.345254693180323
+Time getting data from preforming median smooth: 50.40200803056359
+Time getting data from aggregating dataframe: 18.551496604457498
+Time getting data from calculating within a group_by: 82.5089573673904
+Time getting sorting data: 19.95452214218676
+Time getting data from calculating within a group_by: 81.07459322735667
+Using polars version 1.21.0
+Amount of threads used by polars: 16
+File size: 6092.21 MB
+Time getting data from file: 474.02638538740575
+shape of polars df: (42318191, 9)
+size of df: 2905.7595748901367 mb
+Time getting data from joining tags: 5.196135735139251
+Time getting data from calculating simple distance: 7.124869950115681
+Time getting data from calculating speed: 11.80585533939302
+Time getting data from preforming median smooth: 50.081216387450695
+Time getting data from aggregating dataframe: 12.984809808433056
+Time getting data from calculating within a group_by: 80.31454311311245
+Time getting sorting data: 15.145306346938014
+Time getting data from calculating within a group_by: 79.9840996414423
+Using polars version 1.21.0
+Amount of threads used by polars: 32
+File size: 6092.21 MB
+Time getting data from file: 478.30864433571696
+shape of polars df: (42318191, 9)
+size of df: 2905.7595748901367 mb
+Time getting data from joining tags: 4.127056926488876
+Time getting data from calculating simple distance: 7.678939513862133
+Time getting data from calculating speed: 11.762727458029985
+Time getting data from preforming median smooth: 58.022622525691986
+Time getting data from aggregating dataframe: 10.831121385097504
+Time getting data from calculating within a group_by: 84.16586246527731
+Time getting sorting data: 14.89581230469048
+Time getting data from calculating within a group_by: 83.1962031275034
+Using polars version 1.21.0
+Amount of threads used by polars: 52
+File size: 6092.21 MB
+Time getting data from file: 478.86990203149617
+shape of polars df: (42318191, 9)
+size of df: 2905.7595748901367 mb
+Time getting data from joining tags: 4.025205969810486
+Time getting data from calculating simple distance: 7.612912153825164
+Time getting data from calculating speed: 11.834772432222962
+Time getting data from preforming median smooth: 52.220025945454836
+Time getting data from aggregating dataframe: 11.80222887545824
+Time getting data from calculating within a group_by: 86.26354557462037
+Time getting sorting data: 15.52519442141056
+Time getting data from calculating within a group_by: 85.97932819277048
