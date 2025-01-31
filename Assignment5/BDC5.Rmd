@@ -1,0 +1,260 @@
+---
+title: "Big Data Computing Assignment 5"
+author: "Antsje van der Leij"
+date: "2025-01-31"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+### Antsje van der Leij
+### 343279
+
+## Benchmark of Polas using WATLAS data
+
+The following test were done on the High Performance Computing (HPC) cluster at NIOZ
+
+A High memory compute node wiht 1024GB memory and 52 CPU cores was used for testing.
+
+The node as 3716 Xeon Processor Cores. 
+The Operating system is Linux (Red Hat Enterprise 7.9 ).
+
+All test were preform using a SLURM script which had reserved a single node with no restriction on memory in the node. 
+
+Each test was repeated 10 times, and the total time for all 10 repetitions was measured using the timeit module in Python.
+
+```{r}
+
+library(dplyr)
+library(readr)
+library(stringr)
+library(purrr)
+library(ggplot2)
+
+# Get file_list in directory
+file_list <- list.files(pattern = "benchmark_results_\\d+\\.csv$", full.names = TRUE)
+
+df_list <- list()
+
+for (file in file_list) {
+  # get core number
+  core <- as.numeric(str_extract(basename(file), "\\d+"))
+  # read as csv
+  df <- read_csv(file, show_col_types = FALSE) %>% mutate(cores = core)
+  df_list <- append(df_list, list(df))
+}
+
+# Combine dataframes
+df <- bind_rows(df_list)
+# Print the first few rows
+
+
+ggplot(df, aes(x = test, y = time, fill = as.factor(cores))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Execution Time per Test (repeated 10x) by Core Count",
+       x = "Test",
+       y = "Execution Time seconds",
+       fill = "Cores") +
+  theme_light() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+ggsave(filename = "Execution_time_test_compare.png") 
+
+for (test_name in unique(df$test)) {
+  test_data <- filter(df, test == test_name)
+  
+  bdc_plot <- ggplot(test_data, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", test_name),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(test_data$time) * 1.1, length.out = 10)) +  # More y-axis labels
+    theme_light()
+  
+  ggsave(filename = paste0(test_name, "_execution_time.png"), plot = bdc_plot, width = 6, height = 4)
+  
+}
+
+```
+This graph shows the time for all test. Reading the SQLite file took the most time. Here its clear that Aggragate, group_by, join, Median_smooth, Multi_test, and sort at least had some benefit from using multiple cores. Calculate_dist, Calculate_speed and read_sql don't appear to benift as much (or at all) form multi threading.
+
+```{r}
+read_sql_test <- filter(df, test == "read_sql")
+  
+  bdc_plot <- ggplot(read_sql_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "read_sql"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(read_sql_test$time) * 1.1, length.out = 10)) +  # More y-axis labels
+    theme_light()
+  
+  bdc_plot
+  
+
+
+```
+
+Reading SQLite files with Polars does not improve with more cores. This suggest it is not CPU bound and that the bottle neck is the reading of the disc. It is also the process that takes the longest.
+
+```{r}
+join_test <- filter(df, test == "join")
+  
+  bdc_plot <- ggplot(join_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "join_test"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(join_test$time) * 1.1, length.out = 10)) +  # More y-axis labels
+    theme_light()
+  
+  bdc_plot
+  
+
+
+```
+
+Joining data frames in polars has a benefit from having acces to mutiple cores. With time decreasing as more cores are used. 
+
+```{r}
+dist_test <- filter(df, test == "calculate_dist")
+  
+  bdc_plot <- ggplot(dist_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "calculating distance"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(dist_test$time) * 1.1, length.out = 10)) +
+    theme_light()
+  
+  bdc_plot
+  
+
+calculate_speed_test <- filter(df, test == "calculate_speed")
+  
+  bdc_plot <- ggplot(dist_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "calculating speed"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(calculate_speed_test$time) * 1.1, length.out = 10)) +
+    theme_light()
+  
+  bdc_plot
+``` 
+
+Currently there is not a notable speedup in calculating distance and speed. This likely means that the bottle neck here is the the overhead. Especially if the single core time is the shortest. But it is possible the bottle neck is the memory or disc. 
+
+```{r}
+smooth_test <- filter(df, test == "median_smooth")
+  
+  bdc_plot <- ggplot(smooth_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "median smooth"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(smooth_test$time) * 1.1, length.out = 10)) + 
+    theme_light()
+  
+  bdc_plot
+  
+
+
+```
+
+Median smooth does benefit from more CPU's but only up till 8 cores. After that the overhead performance loss likely becomes more than the CPU performance gain.
+
+```{r}
+agg_test <- filter(df, test == "aggregate")
+  
+  bdc_plot <- ggplot(agg_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", test_name),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(test_data$time) * 1.1, length.out = 10)) +  # More y-axis labels
+    theme_light()
+  
+  bdc_plot
+  
+
+
+```
+
+Aggregate has one of the smoothest curves, showing clear performance gains with more cores until the overhead begins to outweigh the performance improvements from adding more cores. It would be interesting to see if the curve would continue to decrease if the aggregate interval were larger.
+
+```{r}
+group_by_test <- filter(df, test == "group_by")
+  
+  bdc_plot <- ggplot(group_by_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "group_by"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(group_by_test$time) * 1.1, length.out = 10)) +
+    theme_light()
+  
+  bdc_plot
+  
+
+
+```
+
+
+Group_by by itself is similar to median smooth. After that the overhead performance loss likely becomes more than the CPU performance gain.
+
+```{r}
+sort_test <- filter(df, test == "sort")
+  
+  bdc_plot <- ggplot(sort_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "sort"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(sort_test$time) * 1.1, length.out = 10)) +
+    theme_light()
+  
+  bdc_plot
+  
+
+
+```
+
+Sort shows a clear performance gain with more cores.
+
+```{r}
+multi_test <- filter(df, test == "multi_test")
+  
+  bdc_plot <- ggplot(multi_test, aes(x = factor(cores), y = time, fill = as.factor(cores))) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(title = paste("Execution Time for", "multi_test"),
+         x = "Cores",
+         y = "Execution Time (seconds)",
+         fill = "Cores") +
+    scale_y_continuous(breaks = seq(0, max(multi_test$time) * 1.1, length.out = 10)) +
+    theme_light()
+  
+  bdc_plot
+  
+  
+```
+
+Multi-test is group by with median smooth, and speed calculations. As expected form the previus graphs it shows a similar shape as the stand alone group_by and median smooth.
+
+## Conslusion
+
+Polars does benefit from multiple cores but after a while increasing the amount of cores does not contribute to performance gain. This is likely be because of the overhead or the size of the dataset.
