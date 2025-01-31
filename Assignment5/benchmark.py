@@ -29,6 +29,7 @@ file_size_kb = file_size / 1024
 file_size_mb = file_size_kb / 1024
 print(f"File size: {file_size_mb:.2f} MB")
 
+
 def get_subset_query():
     """
     set time for subseting data
@@ -291,12 +292,10 @@ def main():
     print(f"shape of polars df: {watlas_df.shape}")
     print(f'size of df: {watlas_df.estimated_size("mb")} mb')
 
-
     # benchmark join left
     time_join = timeit(lambda: join_tags(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from joining tags: {time_join}")
     log_benchmark("join", time_join, repeats)
-
 
     # benchmark calculating simple distance
     time_dist = timeit(lambda: get_simple_travel_distance(watlas_df=watlas_df), number=repeats)
@@ -333,7 +332,6 @@ def main():
     time_tag = timeit(lambda: speed_and_smooth_by_tag(watlas_df=watlas_df), number=repeats)
     print(f"Time getting data from calculating within a group_by: {time_tag}")
     log_benchmark("multi_test", time_tag, repeats)
-
 
     return 0
 
